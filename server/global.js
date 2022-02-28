@@ -1,3 +1,7 @@
+const fs = require("fs");
+const Matter = require("matter-js");
+const pinoms = require('pino-multi-stream');
+
 Array.prototype.toStrings = function(symbol=",") {
     let rezult = '';
     this.map((elem, i)=> {
@@ -6,8 +10,9 @@ Array.prototype.toStrings = function(symbol=",") {
     });
     return rezult
 }
-/** Сводит к уникальным неповторяющимся символам */
-globalThis.regUniq =(str)=> str.replace(/(.)\1+/g, '$1');
+
+
+global.logger = pinoms(pinoms.multistream([{stream: fs.createWriteStream('log.log')},{stream: pinoms.prettyStream()}]))
 
 
 exports.EventEmmitter = class {
@@ -31,19 +36,25 @@ exports.EventEmmitter = class {
         }
     }
 }
+exports.Point = class {
+    constructor(x, y) {
+        this.get = Matter.Vector.create(x, y);
+        return this.get;
+    }
+}
+exports.Polygon = class {
+    constructor(arrPoint) {
+        this.points = arrPoint;
+    }
+}
 
 exports.createPoly =(elem)=> {
     let points = elem.hitArea.points.reduce((p, c) => {
-        if (p[p.length - 1].length === 2) {
-            p.push([]);
-        }
-
-        p[p.length - 1].push(c);
+        if(p[p.length-1].length===2) p.push([]);
+        p[p.length-1].push(c);
 
         return p;
     }, [[]]);
     
-    return points.map((point)=> {
-        return new Matter.Vector({x: point[0], y: point[1]})
-    });
+    return points
 }

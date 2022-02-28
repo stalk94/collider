@@ -1,4 +1,6 @@
 const jsdom = require("jsdom");
+const { Document, SVGElement } = require('nodom');
+
 const { JSDOM } = jsdom;
 const { window } = new JSDOM(`<head></head><body></body>`, {
     url: "http://last-exit.ru/",
@@ -15,6 +17,9 @@ class Loader extends jsdom.ResourceLoader {
     }
 }
 global.window = window;
-global.document = window.document;
 global.loader = new Loader();
+global.SVGElement = SVGElement;
 
+
+if(process.env.dom==='jsdom') global.document = window.document;
+else global.document = new Document();

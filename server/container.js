@@ -1,9 +1,17 @@
+require("./dom");
 const chalk = require("chalk");
-const { createPoly } = require("./global");
 const Matter = require("matter-js");
 
 
-const Engine = Matter.Engine, Render = Matter.Render, Runner = Matter.Runner, Bodies = Matter.Bodies, Composite = Matter.Composite, Events = Matter.Events;
+const Engine = Matter.Engine;
+const Render = Matter.Render;
+const Runner = Matter.Runner;
+const Bodies = Matter.Bodies;
+const Composite = Matter.Composite;
+const Events = Matter.Events;
+
+global = Object.assign(global, require("canvas"));
+const canvasElement = document.createElement('canvas');
 const color = {
     static: "#fbe565",
     stop: "#fafafa",
@@ -16,11 +24,17 @@ const color = {
 }
 
 
-
 class Container {
-    constructor(locationData) {
-        this.locId = locationData.name;
+    constructor(locationData, name) {
+        this.locId = name ? name : locationData.name;
         this.engine = Engine.create();
+        this.world = this.engine.world;
+        this.children = this.engine.world.bodies;
+        this.render = Render.create({
+            engine: this.engine,
+            canvas: canvasElement,
+            element: document.body
+        });
         this.engine.gravity.scale = 0;
         this.createState();
 
@@ -75,12 +89,13 @@ class Container {
     addChild(elem) {
         if(elem.hitArea){
             let obj = Bodies.polygon(0, 0, elem.hitArea.points.length/2, 0, {
-                vertices: createPoly(elem),
+                vertices: elem.hitArea.points,
                 position: {
                     x: elem.x + (elem.width/2), 
                     y: elem.y - (elem.height/2)
                 }
             });
+
             if(elem.type && (elem.type==='static'||elem.type==='stop')){
                 obj.isStatic = true;
             }
@@ -90,8 +105,11 @@ class Container {
             
             obj.type = elem.type;
             obj.label = elem.name;
-            obj.color = color[elem.type];
-            Composite.add(this.engine.world, [obj]);
+            obj.render.fillStyle = color[elem.type];
+            if(elem.speed) obj.speed = speed;
+            
+            this.engine.world.bodies.push(obj);
+            return obj;
         }
     }
     getChildName(name) {
@@ -103,6 +121,7 @@ class Container {
         Engine.update(this.engine, dt);
     }
 }
+
 
 
 module.exports = Container

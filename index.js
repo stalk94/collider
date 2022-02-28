@@ -1,7 +1,9 @@
+require("dotenv").config();
 require("./server/bd");     // store .set, .get || EVENT
 const cors = require("cors");
 const path = require("path");
 const express = require('express');
+const collider = require("./server/app");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
@@ -40,6 +42,16 @@ io.on("connection", (socket)=> {
 
 
 app.use(cors());
+collider.create();
 app.use('/', express.static(path.join(__dirname, '/src')));
 app.use('/', express.static(path.join(__dirname, '/node_modules')));
-httpServer.listen(3000);
+httpServer.listen(3000, ()=> {
+    let timestamp = Date.now();
+    setInterval(()=> {
+        Object.values(collider.locations)
+            .map((location)=> 
+                location.run(Date.now()-timestamp)
+            );
+        timestamp = Date.now();
+    }, 1000/60);
+});

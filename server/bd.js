@@ -25,7 +25,7 @@ function WatchPlugin() {
     });
 }
 
-
+if(!bd.has("STATE")) bd.set("STATE", {_time:0});
 const globalState = createState(bd.get("STATE"));
 globalState.attach(WatchPlugin);
 setInterval(()=> globalState._time.set(Date.now()), 1000);
